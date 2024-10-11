@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Expense Tracker{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ current_user.username }}!</h1>
+<p>Here is a summary of your expenses:</p>
+
+<!-- Display total expenses -->
+{% set total_expenses = 0 %}
+{% for expense in current_user.expenses %}
+    {% set total_expenses = total_expenses + expense.amount %}
+{% endfor %}
+
+<p>Total Expenses: ${{ '{0:.2f}'.format(total_expenses) }}</p>
+
+<!-- Link to view all expenses -->
+<a href="{{ url_for('expenses') }}" class="btn btn-primary">View All Expenses</a>
+<a href="{{ url_for('add_expense') }}" class="btn btn-secondary">Add New Expense</a>
+{% endblock %}
