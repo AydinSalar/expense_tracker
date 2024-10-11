@@ -119,7 +119,50 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    # Total expenses
+    total_expenses = db.session.query(db.func.sum(Expense.amount)).filter_by(user_id=current_user.id).scalar() or 0.00
+
+    # Expenses by Category
+    expenses_by_category = (
+        db.session.query(Expense.category, db.func.sum(Expense.amount))
+        .filter_by(user_id=current_user.id)
+        .group_by(Expense.category)
+        .all()
+    )
+
+    # Expenses by Month (Last 6 Months)
+    from datetime import datetime, timedelta
+
+    six_months_ago = datetime.now() - timedelta(days=180)
+    expenses_by_month = (
+        db.session.query(
+            db.func.strftime('%Y-%m', Expense.date).label('month'),
+            db.func.sum(Expense.amount).label('total')
+        )
+        .filter(
+            Expense.user_id == current_user.id,
+            Expense.date >= six_months_ago
+        )
+        .group_by('month')
+        .order_by('month')
+        .all()
+    )
+
+    # Prepare data for Chart.js
+    category_labels = [row[0] for row in expenses_by_category]
+    category_values = [float(row[1]) for row in expenses_by_category]
+
+    month_labels = [row[0] for row in expenses_by_month]
+    month_values = [float(row[1]) for row in expenses_by_month]
+
+    return render_template(
+        'dashboard.html',
+        total_expenses=total_expenses,
+        category_labels=category_labels,
+        category_values=category_values,
+        month_labels=month_labels,
+        month_values=month_values
+    )
 
 @app.route('/logout')
 @login_required

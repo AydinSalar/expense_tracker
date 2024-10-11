@@ -3,18 +3,116 @@
 {% block title %}Dashboard - Expense Tracker{% endblock %}
 
 {% block content %}
-<h1>Welcome, {{ current_user.username }}!</h1>
-<p>Here is a summary of your expenses:</p>
+<h1 class="mt-5">Welcome, {{ current_user.username }}!</h1>
+<p class="lead">Here is a summary of your expenses:</p>
 
-<!-- Display total expenses -->
-{% set total_expenses = 0 %}
-{% for expense in current_user.expenses %}
-    {% set total_expenses = total_expenses + expense.amount %}
-{% endfor %}
+<div class="row mt-4">
+  <div class="col-md-6">
+    <canvas id="categoryChart"></canvas>
+  </div>
+  <div class="col-md-6">
+    <canvas id="monthlyChart"></canvas>
+  </div>
+</div>
 
-<p>Total Expenses: ${{ '{0:.2f}'.format(total_expenses) }}</p>
+<a href="{{ url_for('expenses') }}" class="btn btn-primary mt-4">View All Expenses</a>
+<a href="{{ url_for('add_expense') }}" class="btn btn-success mt-4">Add New Expense</a>
 
-<!-- Link to view all expenses -->
-<a href="{{ url_for('expenses') }}" class="btn btn-primary">View All Expenses</a>
-<a href="{{ url_for('add_expense') }}" class="btn btn-secondary">Add New Expense</a>
+<!-- Include Chart.js CDN if not already included in base.html -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Data for Expenses by Category
+  const categoryData = {
+    labels: {{ category_labels|tojson }},
+    datasets: [{
+      data: {{ category_values|tojson }},
+      backgroundColor: [
+        '#FF6384',
+        '#36A2EB',
+        '#FFCE56',
+        '#4BC0C0',
+        '#9966FF',
+        '#FF9F40'
+      ],
+      hoverBackgroundColor: [
+        '#FF6384',
+        '#36A2EB',
+        '#FFCE56',
+        '#4BC0C0',
+        '#9966FF',
+        '#FF9F40'
+      ]
+    }]
+  };
+
+  // Options for Category Chart
+  const categoryOptions = {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Expenses by Category'
+      },
+      legend: {
+        position: 'bottom'
+      }
+    }
+  };
+
+  // Create Pie Chart for Expenses by Category
+  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+  const categoryChart = new Chart(categoryCtx, {
+    type: 'pie',
+    data: categoryData,
+    options: categoryOptions
+  });
+
+  // Data for Expenses by Month
+  const monthData = {
+    labels: {{ month_labels|tojson }},
+    datasets: [{
+      label: 'Expenses',
+      data: {{ month_values|tojson }},
+      backgroundColor: '#36A2EB',
+      borderColor: '#36A2EB',
+      fill: false,
+      tension: 0.1
+    }]
+  };
+
+  // Options for Monthly Chart
+  const monthOptions = {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Expenses Over the Last 6 Months'
+      },
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Month'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Amount ($)'
+        }
+      }
+    }
+  };
+
+  // Create Line Chart for Expenses by Month
+  const monthCtx = document.getElementById('monthlyChart').getContext('2d');
+  const monthlyChart = new Chart(monthCtx, {
+    type: 'line',
+    data: monthData,
+    options: monthOptions
+  });
+</script>
 {% endblock %}
