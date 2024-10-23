@@ -1,28 +1,32 @@
-Database Schema
+# Database Schema
 
-User Model
+This document outlines the database schema for the Expense Tracker web application.
 
-	•	id: Integer, Primary Key
-	•	username: String(150), Unique, Not Null
-	•	email: String(150), Unique, Not Null, Indexed
-	•	password_hash: String(128), Not Null
-	•	created_at: DateTime, Not Null, Default to current time
-	•	expenses: Relationship to Expense Model (One-to-Many)
-	•	categories: Relationship to Category Model (One-to-Many)
+## Overview
 
-Expense Model
+The database consists of three primary models:
 
-	•	id: Integer, Primary Key
-	•	user_id: Integer, Foreign Key to User.id, Not Null
-	•	category_id: Integer, Foreign Key to Category.id, Not Null
-	•	amount: Numeric(10, 2), Not Null
-	•	date: Date, Not Null
-	•	description: String(200), Optional
+1. **User Model**
+2. **Expense Model**
+3. **Category Model**
 
-Category Model
+The relationships between these models are designed to:
 
-	•	id: Integer, Primary Key
-	•	name: String(50), Not Null
-	•	user_id: Integer, Foreign Key to User.id, Not Null
-	•	expenses: Relationship to Expense Model (One-to-Many)
-	•	Unique Constraint: On ('name', 'user_id') to prevent duplicate category names for the same user
+- Allow each user to manage their own expenses and categories.
+- Ensure data integrity and support efficient querying.
+
+## Models
+
+### User Model
+
+Represents the users of the application.
+
+#### Fields
+
+- `id`: Integer, Primary Key
+- `username`: String(150), Unique, Not Null
+- `email`: String(150), Unique, Not Null, Indexed
+- `password_hash`: String(128), Not Null
+- `created_at`: DateTime, Not Null, Defaults to current time
+- `expenses`: Relationship to Expense Model (One-to-Many)
+- `categories`: Relationship to Category Model (One-to-Many)
