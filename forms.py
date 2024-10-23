@@ -3,7 +3,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, FloatField, SelectField, DateField, TextAreaField, EmailField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange, Length
 
+# Registration Form
 class RegistrationForm(FlaskForm):
+    # Fields for user registration
     username = StringField('Username', validators=[
         DataRequired(message="Username is required."),
         Length(min=2, max=20, message="Username must be between 2 and 20 characters.")
@@ -21,26 +23,33 @@ class RegistrationForm(FlaskForm):
     ])
     submit = SubmitField('Register')
 
+    # Custom validation to check if the username already exists
     def validate_username(self, username):
-        # Custom validation to check if username already exists
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('That username is already taken.')
 
+    # Custom validation to check if the email already exists
     def validate_email(self, email):
-        # Custom validation to check if email already exists
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('That email is already registered.')
 
+# Login Form
 class LoginForm(FlaskForm):
+    # Fields for user login
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    remember = BooleanField('Remember Me')
+    remember = BooleanField('Remember Me')  # Option to remember the user
     submit = SubmitField('Login')
 
+# Expense Form
 class ExpenseForm(FlaskForm):
-    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.01)])
+    # Fields for adding/editing an expense
+    amount = FloatField('Amount', validators=[
+        DataRequired(), 
+        NumberRange(min=0.01, message="Amount must be greater than 0.")
+    ])
     category = SelectField('Category', choices=[
         ('Food', 'Food'),
         ('Transport', 'Transport'),
@@ -49,5 +58,5 @@ class ExpenseForm(FlaskForm):
         ('Other', 'Other')
     ], validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d')
-    description = TextAreaField('Description')
+    description = TextAreaField('Description')  # Optional field for description
     submit = SubmitField('Submit')
