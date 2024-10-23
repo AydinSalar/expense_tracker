@@ -6,11 +6,20 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
+import logging
+from logging.handlers import RotatingFileHandler
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)  # Initialize db with app
+
+with app.app_context():
+    print("Creating database tables...")
+    db.create_all()
+    print("Database tables created.")
+
 migrate = Migrate(app, db)
 
 csrf = CSRFProtect(app)
@@ -18,6 +27,15 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+if not app.debug:
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/expense_tracker.log', maxBytes=10240, backupCount=10)
+    file_handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+    file_handler.setFormatter(formatter)
+    app.logger.addHandler(file_handler)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -64,23 +82,28 @@ def expenses():
 @login_required
 def add_expense():
     form = ExpenseForm()
-    if form.validate_on_submit():
-        expense = Expense(
-            amount=form.amount.data,
-            category=form.category.data,
-            date=form.date.data,
-            description=form.description.data,
-            user_id=current_user.id
-        )
-        db.session.add(expense)
-        db.session.commit()
-        flash('Expense added successfully!', 'success')
-        return redirect(url_for('dashboard'))
+    try:
+        if form.validate_on_submit():
+            expense = Expense(
+                amount=form.amount.data,
+                category=form.category.data,
+                date=form.date.data,
+                description=form.description.data,
+                user_id=current_user.id
+            )
+            db.session.add(expense)
+            db.session.commit()
+            flash('Expense added successfully!', 'success')
+            return redirect(url_for('dashboard'))
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Error adding expense: {e}')
+        flash('An error occurred while adding the expense.', 'danger')
     return render_template('add_expense.html', form=form)
 
 @app.route('/')
 def home():
-    return "Hello, World!"
+    return render_template('home.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -173,3 +196,13 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    # Log the error
+    app.logger.error(f'Server Error: {e}, Route: {request.url}')
+    return render_template('500.html'), 500

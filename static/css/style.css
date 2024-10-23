@@ -1,0 +1,26 @@
+/* static/css/style.css */
+
+body {
+    padding-top: 56px; /* To offset the fixed navbar */
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.form-label {
+    font-weight: bold;
+}
+
+.table {
+    margin-top: 20px;
+}

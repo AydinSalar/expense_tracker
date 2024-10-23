@@ -1,24 +1,37 @@
 from models import User
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, FloatField, SelectField, DateField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, FloatField, SelectField, DateField, TextAreaField, EmailField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange, Length
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
+    username = StringField('Username', validators=[
+        DataRequired(message="Username is required."),
+        Length(min=2, max=20, message="Username must be between 2 and 20 characters.")
+    ])
+    email = EmailField('Email', validators=[
+        DataRequired(message="Email is required."),
+        Email(message="Please enter a valid email address.")
+    ])
+    password = PasswordField('Password', validators=[
+        DataRequired(message="Password is required.")
+    ])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(message="Please confirm your password."),
+        EqualTo('password', message="Passwords must match.")
+    ])
+    submit = SubmitField('Register')
 
     def validate_username(self, username):
+        # Custom validation to check if username already exists
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('Username is already taken.')
+            raise ValidationError('That username is already taken.')
 
     def validate_email(self, email):
+        # Custom validation to check if email already exists
         user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError('Email is already registered.')
+            raise ValidationError('That email is already registered.')
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])

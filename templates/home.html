@@ -1,0 +1,21 @@
+<!-- templates/home.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Home - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="jumbotron mt-5">
+    <h1 class="display-4">Welcome to Expense Tracker!</h1>
+    <p class="lead">Manage your expenses effortlessly and gain insights into your spending.</p>
+    <hr class="my-4">
+    {% if not current_user.is_authenticated %}
+    <p>Join us today to take control of your finances.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">Register</a>
+    <a class="btn btn-secondary btn-lg" href="{{ url_for('login') }}" role="button">Login</a>
+    {% else %}
+    <p>View your dashboard to see your expense summary.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">Go to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}

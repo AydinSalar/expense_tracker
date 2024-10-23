@@ -10,33 +10,41 @@
       {{ form.hidden_tag() }}
       <div class="form-group">
         {{ form.amount.label(class="form-label") }}
-        {{ form.amount(class="form-control", placeholder="Enter amount") }}
+        {{ form.amount(class="form-control", placeholder="Enter amount", class=(form.amount.errors and 'is-invalid' or '')) }}
         {% for error in form.amount.errors %}
-        <small class="text-danger">{{ error }}</small>
+        <div class="invalid-feedback">
+          {{ error }}
+        </div>
         {% endfor %}
       </div>
       <div class="form-group">
         {{ form.category.label(class="form-label") }}
-        {{ form.category(class="form-control") }}
+        {{ form.category(class="form-control", class=(form.category.errors and 'is-invalid' or '')) }}
         {% for error in form.category.errors %}
-        <small class="text-danger">{{ error }}</small>
+        <div class="invalid-feedback">
+          {{ error }}
+        </div>
         {% endfor %}
       </div>
       <div class="form-group">
         {{ form.date.label(class="form-label") }}
-        {{ form.date(class="form-control", type="date") }}
+        {{ form.date(class="form-control", type="date", class=(form.date.errors and 'is-invalid' or '')) }}
         {% for error in form.date.errors %}
-        <small class="text-danger">{{ error }}</small>
+        <div class="invalid-feedback">
+          {{ error }}
+        </div>
         {% endfor %}
       </div>
       <div class="form-group">
         {{ form.description.label(class="form-label") }}
-        {{ form.description(class="form-control", rows="3", placeholder="Enter description") }}
+        {{ form.description(class="form-control", rows="3", placeholder="Enter description", class=(form.description.errors and 'is-invalid' or '')) }}
         {% for error in form.description.errors %}
-        <small class="text-danger">{{ error }}</small>
+        <div class="invalid-feedback">
+          {{ error }}
+        </div>
         {% endfor %}
       </div>
-      {{ form.submit(class="btn btn-primary btn-block") }}
+      {{ form.submit(class="btn btn-success btn-block") }}
     </form>
   </div>
 </div>

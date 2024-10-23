@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environment directories
+venv/
+env/
+
+# Flask cache files
+instance/
+*.pyc
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Database files
+*.db
+
+# Logs
+*.log
+
+# Environment variables file
+.env
+
+# Config files
+config.py
+
+# Test cache
+.pytest_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE files
+.vscode/
+.idea/
