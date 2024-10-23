@@ -10,24 +10,31 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
+# Initialize Flask application
 app = Flask(__name__)
 app.config.from_object(Config)
 
-db.init_app(app)  # Initialize db with app
+# Initialize database with Flask app
+db.init_app(app)
 
+# Create database tables
 with app.app_context():
     print("Creating database tables...")
     db.create_all()
     print("Database tables created.")
 
+# Set up database migration tool
 migrate = Migrate(app, db)
 
+# Set up CSRF protection
 csrf = CSRFProtect(app)
 
+# Set up login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Set up logging for error tracking
 if not app.debug:
     if not os.path.exists('logs'):
         os.mkdir('logs')
@@ -37,14 +44,17 @@ if not app.debug:
     file_handler.setFormatter(formatter)
     app.logger.addHandler(file_handler)
 
+# Load user by ID for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+# Edit existing expense
 @app.route('/edit_expense/<int:expense_id>', methods=['GET', 'POST'])
 @login_required
 def edit_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
+    # Ensure current user is the owner of the expense
     if expense.user_id != current_user.id:
         flash('You do not have permission to edit this expense.', 'danger')
         return redirect(url_for('expenses'))
@@ -59,10 +69,12 @@ def edit_expense(expense_id):
         return redirect(url_for('expenses'))
     return render_template('edit_expense.html', form=form, expense=expense)
 
+# Delete an expense
 @app.route('/delete_expense/<int:expense_id>', methods=['POST'])
 @login_required
 def delete_expense(expense_id):
     expense = Expense.query.get_or_404(expense_id)
+    # Ensure current user is the owner of the expense
     if expense.user_id != current_user.id:
         flash('You do not have permission to delete this expense.', 'danger')
         return redirect(url_for('expenses'))
@@ -71,6 +83,7 @@ def delete_expense(expense_id):
     flash('Expense deleted successfully!', 'success')
     return redirect(url_for('expenses'))
 
+# View all expenses for current user
 @app.route('/expenses')
 @login_required
 def expenses():
@@ -78,6 +91,7 @@ def expenses():
     expenses = Expense.query.filter_by(user_id=current_user.id).order_by(Expense.date.desc()).paginate(page=page, per_page=10)
     return render_template('expenses.html', expenses=expenses)
 
+# Add a new expense
 @app.route('/add_expense', methods=['GET', 'POST'])
 @login_required
 def add_expense():
@@ -101,10 +115,12 @@ def add_expense():
         flash('An error occurred while adding the expense.', 'danger')
     return render_template('add_expense.html', form=form)
 
+# Home route
 @app.route('/')
 def home():
     return render_template('home.html')
 
+# Register a new user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -124,6 +140,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
+# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -139,6 +156,7 @@ def login():
             flash('Login unsuccessful. Please check email and password.', 'danger')
     return render_template('login.html', form=form)
 
+# User dashboard route
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -155,7 +173,6 @@ def dashboard():
 
     # Expenses by Month (Last 6 Months)
     from datetime import datetime, timedelta
-
     six_months_ago = datetime.now() - timedelta(days=180)
     expenses_by_month = (
         db.session.query(
@@ -174,7 +191,6 @@ def dashboard():
     # Prepare data for Chart.js
     category_labels = [row[0] for row in expenses_by_category]
     category_values = [float(row[1]) for row in expenses_by_category]
-
     month_labels = [row[0] for row in expenses_by_month]
     month_values = [float(row[1]) for row in expenses_by_month]
 
@@ -187,6 +203,7 @@ def dashboard():
         month_values=month_values
     )
 
+# Logout route
 @app.route('/logout')
 @login_required
 def logout():
@@ -194,15 +211,17 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
+# Handle 404 errors
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
+# Handle 500 errors and log them
 @app.errorhandler(500)
 def internal_server_error(e):
-    # Log the error
     app.logger.error(f'Server Error: {e}, Route: {request.url}')
     return render_template('500.html'), 500
+
+# Run Flask application
+if __name__ == '__main__':
+    app.run(debug=True)
